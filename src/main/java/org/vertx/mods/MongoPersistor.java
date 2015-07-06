@@ -49,6 +49,7 @@ public class MongoPersistor extends BusModBase implements Handler<Message<JsonOb
   protected boolean autoConnectRetry;
   protected int socketTimeout;
   protected boolean useSSL;
+  protected String replicaSetName;
 
   protected Mongo mongo;
   protected DB db;
@@ -71,6 +72,7 @@ public class MongoPersistor extends BusModBase implements Handler<Message<JsonOb
     socketTimeout = getOptionalIntConfig("socket_timeout", 60000);
     useSSL = getOptionalBooleanConfig("use_ssl", false);
     useMongoTypes = getOptionalBooleanConfig("use_mongo_types", false);
+    replicaSetName = getOptionalStringConfig("replica_set_name", null);
 
     JsonArray seedsProperty = config.getArray("seeds");
 
@@ -80,6 +82,10 @@ public class MongoPersistor extends BusModBase implements Handler<Message<JsonOb
       builder.autoConnectRetry(autoConnectRetry);
       builder.socketTimeout(socketTimeout);
       builder.readPreference(readPreference);
+      builder.autoConnectRetry(true);
+      if (replicaSetName != null) {
+        builder.requiredReplicaSetName(replicaSetName);
+      }
 
       if (useSSL) {
         builder.socketFactory(SSLSocketFactory.getDefault());
@@ -185,6 +191,10 @@ public class MongoPersistor extends BusModBase implements Handler<Message<JsonOb
   }
 
   private void doSave(Message<JsonObject> message) {
+    String dbName = getMandatoryString("db_name", message);
+    if (dbName != null) {
+      db = mongo.getDB(dbName);
+    }
     String collection = getMandatoryString("collection", message);
     if (collection == null) {
       return;
@@ -226,6 +236,10 @@ public class MongoPersistor extends BusModBase implements Handler<Message<JsonOb
   }
 
   private void doUpdate(Message<JsonObject> message) {
+    String dbName = getMandatoryString("db_name", message);
+    if (dbName != null) {
+      db = mongo.getDB(dbName);
+    }
     String collection = getMandatoryString("collection", message);
     if (collection == null) {
       return;
@@ -264,6 +278,10 @@ public class MongoPersistor extends BusModBase implements Handler<Message<JsonOb
   }
 
   private void doFind(Message<JsonObject> message) {
+    String dbName = getMandatoryString("db_name", message);
+    if (dbName != null) {
+      db = mongo.getDB(dbName);
+    }
     String collection = getMandatoryString("collection", message);
     if (collection == null) {
       return;
@@ -391,6 +409,10 @@ public class MongoPersistor extends BusModBase implements Handler<Message<JsonOb
   }
 
   private void doFindOne(Message<JsonObject> message) {
+    String dbName = getMandatoryString("db_name", message);
+    if (dbName != null) {
+      db = mongo.getDB(dbName);
+    }
     String collection = getMandatoryString("collection", message);
     if (collection == null) {
       return;
@@ -413,6 +435,10 @@ public class MongoPersistor extends BusModBase implements Handler<Message<JsonOb
   }
 
   private void doFindAndModify(Message<JsonObject> message) {
+    String dbName = getMandatoryString("db_name", message);
+    if (dbName != null) {
+      db = mongo.getDB(dbName);
+    }
     String collectionName = getMandatoryString("collection", message);
     if (collectionName == null) {
       return;
@@ -439,6 +465,10 @@ public class MongoPersistor extends BusModBase implements Handler<Message<JsonOb
   }
 
   private void doCount(Message<JsonObject> message) {
+    String dbName = getMandatoryString("db_name", message);
+    if (dbName != null) {
+      db = mongo.getDB(dbName);
+    }
     String collection = getMandatoryString("collection", message);
     if (collection == null) {
       return;
@@ -457,6 +487,10 @@ public class MongoPersistor extends BusModBase implements Handler<Message<JsonOb
   }
 
   private void doDelete(Message<JsonObject> message) {
+    String dbName = getMandatoryString("db_name", message);
+    if (dbName != null) {
+      db = mongo.getDB(dbName);
+    }
     String collection = getMandatoryString("collection", message);
     if (collection == null) {
       return;
@@ -491,6 +525,10 @@ public class MongoPersistor extends BusModBase implements Handler<Message<JsonOb
   private void dropCollection(Message<JsonObject> message) {
 
     JsonObject reply = new JsonObject();
+    String dbName = getMandatoryString("db_name", message);
+    if (dbName != null) {
+      db = mongo.getDB(dbName);
+    }
     String collection = getMandatoryString("collection", message);
 
     if (collection == null) {
@@ -508,6 +546,10 @@ public class MongoPersistor extends BusModBase implements Handler<Message<JsonOb
   }
 
   private void getCollectionStats(Message<JsonObject> message) {
+    String dbName = getMandatoryString("db_name", message);
+    if (dbName != null) {
+      db = mongo.getDB(dbName);
+    }
     String collection = getMandatoryString("collection", message);
 
     if (collection == null) {
@@ -531,6 +573,10 @@ public class MongoPersistor extends BusModBase implements Handler<Message<JsonOb
     if (isPipelinesMissing(message.body().getArray("pipelines"))) {
       sendError(message, "no pipeline operations found");
       return;
+    }
+    String dbName = getMandatoryString("db_name", message);
+    if (dbName != null) {
+      db = mongo.getDB(dbName);
     }
     String collection = getMandatoryString("collection", message);
     JsonArray pipelinesAsJson = message.body().getArray("pipelines");
@@ -562,6 +608,10 @@ public class MongoPersistor extends BusModBase implements Handler<Message<JsonOb
   }
 
   private boolean isCollectionMissing(Message<JsonObject> message) {
+    String dbName = getMandatoryString("db_name", message);
+    if (dbName != null) {
+      db = mongo.getDB(dbName);
+    }
     return getMandatoryString("collection", message) == null;
   }
 
@@ -610,4 +660,3 @@ public class MongoPersistor extends BusModBase implements Handler<Message<JsonOb
   }
 
 }
-
