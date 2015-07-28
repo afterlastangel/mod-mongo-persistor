@@ -205,8 +205,10 @@ public class MongoPersistor extends BusModBase implements Handler<Message<JsonOb
     }
     String genID;
     if (doc.getField("_id") == null) {
-      genID = UUID.randomUUID().toString();
-      doc.putString("_id", genID);
+      //Remove MongoPersistor auto gen UUID, use mongodb default
+      //genID = UUID.randomUUID().toString();
+      //doc.putString("_id", genID);
+      genID = null;
     } else {
       genID = null;
     }
